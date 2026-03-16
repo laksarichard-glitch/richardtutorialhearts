@@ -142,14 +142,23 @@ export class Game {
       this.cardsManager,
       document.getElementById("myhand"),
     );
+
     // TODO: fix handStock
     this.handStock.setSelectionMode("single");
     this.handStock.onCardClick = (card) => {
-      alert("boom!");
+      debugger;
+      this.tableauStocks[card.location_arg].addCards([card]);
     };
 
     // Cards in player's hand
     this.handStock.addCards(Array.from(Object.values(this.gamedatas.hand)));
+
+    // Cards played on table
+    for (i in this.gamedatas.cardsontable) {
+      var card = this.gamedatas.cardsontable[i];
+      var player_id = card.location_arg;
+      this.tableauStocks[player_id].addCards([card]);
+    }
 
     // Example to add a div on the game area
     this.bga.gameArea.getElement().insertAdjacentHTML(
@@ -159,7 +168,6 @@ export class Game {
         `,
     );
 
-    // Setting up player boards
     // Setting up player boards
     const numPlayers = Object.keys(gamedatas.players).length;
     Object.values(gamedatas.players).forEach((player, index) => {
@@ -192,6 +200,19 @@ export class Game {
     });
 
     // TODO: Set up your game interface here, according to "gamedatas"
+
+    this.tableauStocks = [];
+    Object.values(gamedatas.players).forEach((player, index) => {
+      // add player tableau stock
+      this.tableauStocks[player.id] = new BgaCards.LineStock(
+        this.cardsManager,
+        document.getElementById(`tableau_${player.id}`),
+      );
+      // TODO: fix tableauStocks
+      this.tableauStocks[player.id].addCards([
+        { id: index + 10, type: index + 1, type_arg: index + 2 },
+      ]);
+    });
 
     // Setup game notifications to handle (see "setupNotifications" method below)
     this.setupNotifications();
