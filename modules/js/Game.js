@@ -99,7 +99,7 @@ export class Game {
   setup(gamedatas) {
     console.log("Starting game setup");
     this.gamedatas = gamedatas;
-
+    debugger;
     this.bga.gameArea.getElement().insertAdjacentHTML(
       "beforeend",
       `
@@ -146,19 +146,26 @@ export class Game {
     // TODO: fix handStock
     this.handStock.setSelectionMode("single");
     this.handStock.onCardClick = (card) => {
-      debugger;
-      this.tableauStocks[card.location_arg].addCards([card]);
+      {
+        console.log("onCardClick : card ", card);
+        console.log("onCardClick : namestate ", this.gamedatas.gamestate.name);
+        if (!card) return; // hmm - should never happen
+        switch (this.gamedatas.gamestate.name) {
+          case "PlayerTurn":
+            // Can play a card
+            this.bga.actions.performAction("actPlayCard", { cardId: card.id });
+
+            break;
+          case "GiveCards":
+            // Can give cards TODO
+            break;
+          default: {
+            this.handStock.unselectAll();
+            break;
+          }
+        }
+      }
     };
-
-    // Cards in player's hand
-    this.handStock.addCards(Array.from(Object.values(this.gamedatas.hand)));
-
-    // Cards played on table
-    for (i in this.gamedatas.cardsontable) {
-      var card = this.gamedatas.cardsontable[i];
-      var player_id = card.location_arg;
-      this.tableauStocks[player_id].addCards([card]);
-    }
 
     // Example to add a div on the game area
     this.bga.gameArea.getElement().insertAdjacentHTML(
@@ -177,10 +184,24 @@ export class Game {
         `
     <div class="playertable whiteblock playertable_${index}">
         <div class="playertablename" style="color:#${player.color};">${player.name}</div>
-        <div id="tableau_${player.id}"></div>
+        <div id="tableau_${player.id}"/></div>
+        <div id="cardswon_${player.id}"/></div>    
     </div>
     `,
       );
+    });
+
+    this.tableauStocks = [];
+    Object.values(gamedatas.players).forEach((player, index) => {
+      // add player tableau stock
+      this.tableauStocks[player.id] = new BgaCards.LineStock(
+        this.cardsManager,
+        document.getElementById(`tableau_${player.id}`),
+      );
+      // TODO: fix tableauStocks
+      this.tableauStocks[player.id].addCards([
+        { id: index + 10, type: index + 1, type_arg: index + 2 },
+      ]);
     });
 
     Object.values(gamedatas.players).forEach((player) => {
@@ -198,21 +219,17 @@ export class Game {
         playerId: player.id,
       });
     });
+    // Cards in player's hand
+    this.handStock.addCards(Array.from(Object.values(this.gamedatas.hand)));
+
+    // Cards played on table
+    for (i in this.gamedatas.cardsontable) {
+      var card = this.gamedatas.cardsontable[i];
+      var player_id = card.location_arg;
+      this.tableauStocks[player_id].addCards([card]);
+    }
 
     // TODO: Set up your game interface here, according to "gamedatas"
-
-    this.tableauStocks = [];
-    Object.values(gamedatas.players).forEach((player, index) => {
-      // add player tableau stock
-      this.tableauStocks[player.id] = new BgaCards.LineStock(
-        this.cardsManager,
-        document.getElementById(`tableau_${player.id}`),
-      );
-      // TODO: fix tableauStocks
-      this.tableauStocks[player.id].addCards([
-        { id: index + 10, type: index + 1, type_arg: index + 2 },
-      ]);
-    });
 
     // Setup game notifications to handle (see "setupNotifications" method below)
     this.setupNotifications();
@@ -252,13 +269,26 @@ export class Game {
   }
 
   // TODO: from this point and below, you can write your game notifications handling methods
+  async notif_newHand(args) {
+    // We received a new full hand of 13 cards.
+    this.handStock.removeAll();
+    this.handStock.addCards(Array.from(Object.values(args.hand)));
+  }
 
-  /*
-    Example:
-    async notif_cardPlayed( args ) {
-        // Note: args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-        
-        // TODO: play the card in the user interface.
-    }
-    */
+  async notif_playCard(args) {
+    // Play a card on the table
+    this.tableauStocks[args.player_id].addCards([args.card]);
+  }
+
+  async notif_trickWin(args) {
+    // We do nothing here (just wait in order players can view the 4 cards played before they're gone)
+  }
+
+  async notif_giveAllCardsToPlayer(args) {
+    // Move all cards on table to given table, then destroy them
+    const winner_id = args.player_id;
+    const cards = Array.from(Object.values(args.cards));
+    await this.tableauStocks[winner_id].addCards(cards);
+  }
+  // TODO: cards has to dissapear after
 }
