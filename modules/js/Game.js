@@ -11,6 +11,10 @@
  *
  */
 
+import { PlayerTurn } from "./PlayerTurn.js";
+import { logStart } from "./Functions.js";
+import { logEnd } from "./Functions.js";
+
 /**
  * We create one State class per declared state on the PHP side, to handle all state specific code here.
  * onEnteringState, onLeavingState and onPlayerActivationChange are predefined names that will be called by the framework.
@@ -18,53 +22,6 @@
  */
 const BgaAnimations = await importEsmLib("bga-animations", "1.x");
 const BgaCards = await importEsmLib("bga-cards", "1.x");
-
-class PlayerTurn {
-  constructor(game, bga) {
-    this.game = game;
-    this.bga = bga;
-  }
-
-  /**
-   * This method is called each time we are entering the game state. You can use this method to perform some user interface changes at this moment.
-   */
-  onEnteringState(args, isCurrentPlayerActive) {
-    this.bga.statusBar.setTitle(
-      isCurrentPlayerActive
-        ? _("${you} must play a card or pass")
-        : _("${actplayer} must play a card or pass"),
-    );
-
-    if (isCurrentPlayerActive) {
-      const playableCardsIds = args.playableCardsIds; // returned by the PlayerTurn::getArgs
-    }
-  }
-
-  /**
-   * This method is called each time we are leaving the game state. You can use this method to perform some user interface changes at this moment.
-   */
-  onLeavingState(args, isCurrentPlayerActive) {}
-
-  /**
-   * This method is called each time the current player becomes active or inactive in a MULTIPLE_ACTIVE_PLAYER state. You can use this method to perform some user interface changes at this moment.
-   * on MULTIPLE_ACTIVE_PLAYER states, you may want to call this function in onEnteringState using `this.onPlayerActivationChange(args, isCurrentPlayerActive)` at the end of onEnteringState.
-   * If your state is not a MULTIPLE_ACTIVE_PLAYER one, you can delete this function.
-   */
-  onPlayerActivationChange(args, isCurrentPlayerActive) {}
-
-  onCardClick(card_id) {
-    console.log("onCardClick", card_id);
-
-    this.bga.actions
-      .performAction("actPlayCard", {
-        card_id,
-      })
-      .then(() => {
-        // What to do after the server call if it succeeded
-        // (most of the time, nothing, as the game will react to notifs / change of state instead, so you can delete the `then`)
-      });
-  }
-}
 
 export class Game {
   constructor(bga) {
@@ -76,7 +33,7 @@ export class Game {
     this.bga.states.register("PlayerTurn", this.playerTurn);
 
     // Uncomment the next line to show debug informations about state changes in the console. Remove before going to production!
-    // this.bga.states.logger = console.log;
+    this.bga.states.logger = console.log;
 
     // Here, you can init the global variables of your user interface
     // Example:
@@ -85,21 +42,113 @@ export class Game {
 
   /*
         setup:
-        
         This method must set up the game user interface according to current game situation specified
         in parameters.
-        
         The method is called each time the game interface is displayed to a player, ie:
         _ when the game starts
         _ when a player refreshes the game page (F5)
-        
         "gamedatas" argument contains all datas retrieved by your "getAllDatas" PHP method.
     */
 
   setup(gamedatas) {
     console.log("Starting game setup");
     this.gamedatas = gamedatas;
-    debugger;
+    // set uop the DOM
+    this.setUpDOM(gamedatas);
+
+    // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
+    this.setupManagers();
+
+    this.setupMiniPanel(gamedatas);
+
+    // TODO: fix handStock
+    this.handleCards(gamedatas);
+
+    // TODO: Set up your game interface here, according to "gamedatas"
+
+    // Setup game notifications to handle (see "setupNotifications" method below)
+    this.setupNotifications();
+
+    console.log("Ending game setup");
+  }
+
+  /*
+   *
+   */
+  handleCards(gamedatas) {
+    this.handStock.setSelectionMode("single");
+    this.handStock.onCardClick = (card) => {
+      {
+        console.log("onCardClick : card ", card);
+        console.log("onCardClick : namestate ", this.gamedatas.gamestate.name);
+        if (!card) return; // hmm - should never happen
+        switch (this.gamedatas.gamestate.name) {
+          case "PlayerTurn":
+            // Can play a card
+            this.bga.actions.performAction("actPlayCard", { cardId: card.id });
+
+            break;
+          case "GiveCards":
+            // Can give cards TODO
+            break;
+          default: {
+            this.handStock.unselectAll();
+            break;
+          }
+        }
+      }
+    };
+
+    this.tableauStocks = [];
+    Object.values(gamedatas.players).forEach((player, index) => {
+      // add player tableau stock
+      this.tableauStocks[player.id] = new BgaCards.LineStock(
+        this.cardsManager,
+        document.getElementById(`tableau_${player.id}`),
+      );
+      // TODO: fix tableauStocks
+      this.tableauStocks[player.id].addCards([
+        { id: index + 10, type: index + 1, type_arg: index + 2 },
+      ]);
+    });
+
+    // Cards in player's hand
+    this.handStock.addCards(Array.from(Object.values(this.gamedatas.hand)));
+
+    // Cards played on table
+    for (i in this.gamedatas.cardsontable) {
+      var card = this.gamedatas.cardsontable[i];
+      var player_id = card.location_arg;
+      this.tableauStocks[player_id].addCards([card]);
+    }
+  }
+
+  /*
+   *
+   */
+  setupMiniPanel(gamedatas) {
+    Object.values(gamedatas.players).forEach((player) => {
+      // example of setting up players boards
+      this.bga.playerPanels.getElement(player.id).insertAdjacentHTML(
+        "beforeend",
+        `
+                <span id="energy-player-counter-${player.id}"></span> Energy
+            `,
+      );
+      const counter = new ebg.counter();
+      counter.create(`energy-player-counter-${player.id}`, {
+        value: player.energy,
+        playerCounter: "energy",
+        playerId: player.id,
+      });
+    });
+  }
+
+  /*
+   *
+   */
+  setUpDOM(gamedatas) {
+    logStart(this.setUpDOM.name);
     this.bga.gameArea.getElement().insertAdjacentHTML(
       "beforeend",
       `
@@ -111,7 +160,34 @@ export class Game {
 
             `,
     );
-    // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
+
+    // Example to add a div on the game area
+    this.bga.gameArea.getElement().insertAdjacentHTML(
+      "beforeend",
+      `
+            <div id="player-tables"></div>
+        `,
+    );
+
+    // Setting up player boards
+    const numPlayers = Object.keys(gamedatas.players).length;
+    Object.values(gamedatas.players).forEach((player, index) => {
+      document.getElementById("player-tables").insertAdjacentHTML(
+        "beforeend",
+        // we generate this html snippet for each player
+        `
+          <div class="playertable whiteblock playertable_${index}">
+              <div class="playertablename" style="color:#${player.color};">${player.name}</div>
+              <div id="tableau_${player.id}"/></div>
+              <div id="cardswon_${player.id}"/></div>    
+          </div>
+    `,
+      );
+    });
+    logEnd(this.setUpDOM.name);
+  }
+
+  setupManagers() {
     this.animationManager = new BgaAnimations.Manager({
       animationsActive: () => this.bga.gameui.bgaAnimationsActive(),
     });
@@ -142,121 +218,12 @@ export class Game {
       this.cardsManager,
       document.getElementById("myhand"),
     );
-
-    // TODO: fix handStock
-    this.handStock.setSelectionMode("single");
-    this.handStock.onCardClick = (card) => {
-      {
-        console.log("onCardClick : card ", card);
-        console.log("onCardClick : namestate ", this.gamedatas.gamestate.name);
-        if (!card) return; // hmm - should never happen
-        switch (this.gamedatas.gamestate.name) {
-          case "PlayerTurn":
-            // Can play a card
-            this.bga.actions.performAction("actPlayCard", { cardId: card.id });
-
-            break;
-          case "GiveCards":
-            // Can give cards TODO
-            break;
-          default: {
-            this.handStock.unselectAll();
-            break;
-          }
-        }
-      }
-    };
-
-    // Example to add a div on the game area
-    this.bga.gameArea.getElement().insertAdjacentHTML(
-      "beforeend",
-      `
-            <div id="player-tables"></div>
-        `,
-    );
-
-    // Setting up player boards
-    const numPlayers = Object.keys(gamedatas.players).length;
-    Object.values(gamedatas.players).forEach((player, index) => {
-      document.getElementById("player-tables").insertAdjacentHTML(
-        "beforeend",
-        // we generate this html snippet for each player
-        `
-    <div class="playertable whiteblock playertable_${index}">
-        <div class="playertablename" style="color:#${player.color};">${player.name}</div>
-        <div id="tableau_${player.id}"/></div>
-        <div id="cardswon_${player.id}"/></div>    
-    </div>
-    `,
-      );
-    });
-
-    this.tableauStocks = [];
-    Object.values(gamedatas.players).forEach((player, index) => {
-      // add player tableau stock
-      this.tableauStocks[player.id] = new BgaCards.LineStock(
-        this.cardsManager,
-        document.getElementById(`tableau_${player.id}`),
-      );
-      // TODO: fix tableauStocks
-      this.tableauStocks[player.id].addCards([
-        { id: index + 10, type: index + 1, type_arg: index + 2 },
-      ]);
-    });
-
-    Object.values(gamedatas.players).forEach((player) => {
-      // example of setting up players boards
-      this.bga.playerPanels.getElement(player.id).insertAdjacentHTML(
-        "beforeend",
-        `
-                <span id="energy-player-counter-${player.id}"></span> Energy
-            `,
-      );
-      const counter = new ebg.counter();
-      counter.create(`energy-player-counter-${player.id}`, {
-        value: player.energy,
-        playerCounter: "energy",
-        playerId: player.id,
-      });
-    });
-    // Cards in player's hand
-    this.handStock.addCards(Array.from(Object.values(this.gamedatas.hand)));
-
-    // Cards played on table
-    for (i in this.gamedatas.cardsontable) {
-      var card = this.gamedatas.cardsontable[i];
-      var player_id = card.location_arg;
-      this.tableauStocks[player_id].addCards([card]);
-    }
-
-    // TODO: Set up your game interface here, according to "gamedatas"
-
-    // Setup game notifications to handle (see "setupNotifications" method below)
-    this.setupNotifications();
-
-    console.log("Ending game setup");
   }
-
-  ///////////////////////////////////////////////////
-  //// Utility methods
-
-  /*
-    
-        Here, you can defines some utility methods that you can use everywhere in your javascript
-        script. Typically, functions that are used in multiple state classes or outside a state class.
-    
-    */
-
-  ///////////////////////////////////////////////////
-  //// Reaction to cometD notifications
 
   /*
         setupNotifications:
-        
         In this method, you associate each of your game notifications with your local method to handle it.
-        
         Note: game notification names correspond to "bga->notify->all" calls in your Game.php file.
-    
     */
   setupNotifications() {
     console.log("notifications subscriptions setup");
@@ -264,7 +231,7 @@ export class Game {
     // automatically listen to the notifications, based on the `notif_xxx` function on this class.
     // Uncomment the logger param to see debug information in the console about notifications.
     this.bga.notifications.setupPromiseNotifications({
-      // logger: console.log
+      logger: console.log,
     });
   }
 
@@ -290,5 +257,4 @@ export class Game {
     const cards = Array.from(Object.values(args.cards));
     await this.tableauStocks[winner_id].addCards(cards);
   }
-  // TODO: cards has to dissapear after
 }

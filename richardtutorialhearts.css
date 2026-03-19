@@ -75,10 +75,11 @@
   --h-tableau-height: 180px;
 }
 
+/* The main container of the player tables. */
 #player-tables {
   position: relative;
-  width: calc(var(--h-tableau-width) * 3.9);
-  height: calc(var(--h-tableau-height) * 2.4);
+  width: calc(var(--h-tableau-width) * 4);
+  height: calc(var(--h-tableau-height) * 2.5);
 }
 
 .playertablename {
@@ -94,25 +95,24 @@
 
 .playertable_0 {
   top: 0px;
-  left: 50%;
-  margin-left: calc(var(--h-tableau-width) / 2 * -1);
+  left: 320px;
 }
 
 .playertable_1 {
-  left: 0px;
-  top: 50%;
-  margin-top: calc(var(--h-tableau-height) / 2 * -1);
+  top: 115px;
+  left: 640px;
 }
+
 .playertable_2 {
-  right: 0px;
-  top: 50%;
-  margin-top: calc(var(--h-tableau-height) / 2 * -1);
+  top: 230px;
+  left: 320px;
 }
+
 .playertable_3 {
-  bottom: 0px;
-  left: 50%;
-  margin-left: calc(var(--h-tableau-width) / 2 * -1);
+  top: 115px;
+  left: 0px;
 }
+
 .ha-card-front {
   background-size: 1500% auto;
   background-image: url("img/cards.jpg");
