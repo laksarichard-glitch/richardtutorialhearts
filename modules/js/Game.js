@@ -12,8 +12,7 @@
  */
 
 import { PlayerTurn } from "./PlayerTurn.js";
-import { logStart } from "./Functions.js";
-import { logEnd } from "./Functions.js";
+import { getCoordinates, logStart, logEnd } from "./Functions.js";
 
 /**
  * We create one State class per declared state on the PHP side, to handle all state specific code here.
@@ -53,7 +52,8 @@ export class Game {
   setup(gamedatas) {
     console.log("Starting game setup");
     this.gamedatas = gamedatas;
-    // set uop the DOM
+
+    // set up the DOM
     this.setUpDOM(gamedatas);
 
     // create the animation manager, and bind it to the `game.bgaAnimationsActive()` function
@@ -169,16 +169,28 @@ export class Game {
         `,
     );
 
-    // Setting up player boards
     const numPlayers = Object.keys(gamedatas.players).length;
+
+    // Setting up player boards
+    // numebr of players, width and height of the main board followed by width and height of each individuals players board
+    // (allowing for padding and margins)
+    let coordinates = getCoordinates(
+      numPlayers,
+      880,
+      450,
+      220 + 10 + 10,
+      180 + 10 + 10 + 10 + 10,
+    );
+
     Object.values(gamedatas.players).forEach((player, index) => {
+      console.log("x and y", coordinates[index].x, coordinates[index].y);
       document.getElementById("player-tables").insertAdjacentHTML(
         "beforeend",
         // we generate this html snippet for each player
         `
-          <div class="playertable whiteblock playertable_${index}">
+          <div class="playertable whiteblock" style="top:${coordinates[index].y}px;left:${coordinates[index].x}px;">
               <div class="playertablename" style="color:#${player.color};">${player.name}</div>
-              <div id="tableau_${player.id}"/></div>
+              <div id="tableau_${player.id}" /></div>
               <div id="cardswon_${player.id}"/></div>    
           </div>
     `,
