@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\RichardTutorialHearts\States;
+namespace Bga\Games\HeartsWithPass\States;
 
 use Bga\GameFramework\StateType;
-use Bga\Games\RichardTutorialHearts\Game;
+use Bga\Games\HeartsWithPass\Game;
 
 const ST_END_GAME = 99;
 
