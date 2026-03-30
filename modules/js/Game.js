@@ -109,7 +109,20 @@ export class Game {
 
   setup(gamedatas) {
     console.log("Starting game setup");
+    debugger;
     this.gamedatas = gamedatas;
+
+    this.bga.gameArea.getElement().insertAdjacentHTML(
+      "beforeend",
+      `
+                <div id="myhand_wrap" class="whiteblock">
+                    <b id="myhand_label">${_("My hand")}</b>
+                        <div id="myhand">
+                        </div>
+                    </div>
+
+            `,
+    );
 
     // Example to add a div on the game area
     this.bga.gameArea.getElement().insertAdjacentHTML(

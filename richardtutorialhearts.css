@@ -1,7 +1,7 @@
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * HeartsWithPass implementation : © <Your name here> <Your email address here>
+ * richardtutorialhearts implementation : © <Your name here> <Your email address here>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -35,12 +35,9 @@
            Consequently, don't hesitate to put as many comments as necessary.
 */
 
-
 /* Note: you must not use any @import directive */
 
-
 /********* You can start writing your CSS below this line: **********/
-
 
 /*
     Example of CSS sprites (a black token and a white token, 20x20px each, embedded in the same "tokens.png" 40x20px image):
@@ -59,7 +56,3 @@
         background-repeat: none;
     }
 */
-
-
-
-

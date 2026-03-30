@@ -2,20 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Bga\Games\HeartsWithPass\States;
+namespace Bga\Games\richardtutorialhearts\States;
 
 use Bga\GameFramework\StateType;
 use Bga\GameFramework\States\GameState;
 use Bga\GameFramework\States\PossibleAction;
 use Bga\GameFramework\UserException;
-use Bga\Games\HeartsWithPass\Game;
+use Bga\Games\richardtutorialhearts\Game;
 
 class PlayerTurn extends GameState
 {
     function __construct(
         protected Game $game,
     ) {
-        parent::__construct($game,
+        parent::__construct(
+            $game,
             id: 10,
             type: StateType::ACTIVE_PLAYER,
         );
@@ -33,7 +34,7 @@ class PlayerTurn extends GameState
         return [
             "playableCardsIds" => [1, 2],
         ];
-    }    
+    }
 
     /**
      * Player action, example content.
@@ -106,7 +107,8 @@ class PlayerTurn extends GameState
      * you must _never_ use `getCurrentPlayerId()` or `getCurrentPlayerName()`, 
      * but use the $playerId passed in parameter and $this->game->getPlayerNameById($playerId) instead.
      */
-    function zombie(int $playerId) {
+    function zombie(int $playerId)
+    {
         // Example of zombie level 0: return NextPlayer::class; or $this->actPass($playerId);
 
         // Example of zombie level 1:

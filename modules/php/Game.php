@@ -1,8 +1,9 @@
 <?php
+
 /**
  *------
  * BGA framework: Gregory Isabelli & Emmanuel Colin & BoardGameArena
- * HeartsWithPass implementation : © <Your name here> <Your email address here>
+ * richardtutorialhearts implementation : © <Your name here> <Your email address here>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -14,11 +15,12 @@
  *
  * In this PHP file, you are going to defines the rules of the game.
  */
+
 declare(strict_types=1);
 
-namespace Bga\Games\HeartsWithPass;
+namespace Bga\Games\richardtutorialhearts;
 
-use Bga\Games\HeartsWithPass\States\PlayerTurn;
+use Bga\Games\richardtutorialhearts\States\PlayerTurn;
 use Bga\GameFramework\Components\Counters\PlayerCounter;
 
 class Game extends \Bga\GameFramework\Table
@@ -97,21 +99,21 @@ class Game extends \Bga\GameFramework\Table
      */
     public function upgradeTableDb($from_version)
     {
-//       if ($from_version <= 1404301345)
-//       {
-//            // ! important ! Use `DBPREFIX_<table_name>` for all tables
-//
-//            $sql = "ALTER TABLE `DBPREFIX_xxxxxxx` ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
-//
-//       if ($from_version <= 1405061421)
-//       {
-//            // ! important ! Use `DBPREFIX_<table_name>` for all tables
-//
-//            $sql = "CREATE TABLE `DBPREFIX_xxxxxxx` ....";
-//            $this->applyDbUpgradeToAllDB( $sql );
-//       }
+        //       if ($from_version <= 1404301345)
+        //       {
+        //            // ! important ! Use `DBPREFIX_<table_name>` for all tables
+        //
+        //            $sql = "ALTER TABLE `DBPREFIX_xxxxxxx` ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
+        //
+        //       if ($from_version <= 1405061421)
+        //       {
+        //            // ! important ! Use `DBPREFIX_<table_name>` for all tables
+        //
+        //            $sql = "CREATE TABLE `DBPREFIX_xxxxxxx` ....";
+        //            $this->applyDbUpgradeToAllDB( $sql );
+        //       }
     }
 
     /*
@@ -198,14 +200,16 @@ class Game extends \Bga\GameFramework\Table
      * Here, jump to a state you want to test (by default, jump to next player state)
      * You can trigger it on Studio using the Debug button on the right of the top bar.
      */
-    public function debug_goToState(int $state = 3) {
+    public function debug_goToState(int $state = 3)
+    {
         $this->gamestate->jumpToState($state);
     }
 
     /**
      * Another example of debug function, to easily test the zombie code.
      */
-    public function debug_playOneMove() {
+    public function debug_playOneMove()
+    {
         $this->bga->debug->playUntil(fn(int $count) => $count == 1);
     }
 
