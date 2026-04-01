@@ -143,7 +143,25 @@ export class Game {
     // TODO: fix handStock
     this.handStock.setSelectionMode("single");
     this.handStock.onCardClick = (card) => {
-      this.tableauStocks[card.location_arg].addCards([card]);
+      {
+        console.log("onCardClick : card ", card);
+        console.log("onCardClick : namestate ", this.gamedatas.gamestate.name);
+        if (!card) return; // hmm - should never happen
+        switch (this.gamedatas.gamestate.name) {
+          case "PlayerTurn":
+            // Can play a card
+            this.bga.actions.performAction("actPlayCard", { cardId: card.id });
+
+            break;
+          case "GiveCards":
+            // Can give cards TODO
+            break;
+          default: {
+            this.handStock.unselectAll();
+            break;
+          }
+        }
+      }
     };
 
     // Cards in player's hand
