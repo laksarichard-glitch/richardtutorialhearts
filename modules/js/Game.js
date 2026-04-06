@@ -180,11 +180,7 @@ export class Game {
     );
 
     // Setting up player boards
-    const numPlayers = Object.keys(gamedatas.players).length;
     getSortedPlayers(gamedatas).forEach((player, index) => {
-      // });
-
-      // Object.values(gamedatas.players).forEach((player, index) => {
       document.getElementById("player-tables").insertAdjacentHTML(
         "beforeend",
         // we generate this html snippet for each player
@@ -200,7 +196,7 @@ export class Game {
     // TODO: Set up your game interface here, according to "gamedatas"
     // map stocks
     this.tableauStocks = [];
-    Object.values(gamedatas.players).forEach((player, index) => {
+    getSortedPlayers(gamedatas).forEach((player, index) => {
       // add player tableau stock
       this.tableauStocks[player.id] = new BgaCards.LineStock(
         this.cardsManager,
