@@ -20,6 +20,8 @@
 const BgaAnimations = await importEsmLib("bga-animations", "1.x");
 const BgaCards = await importEsmLib("bga-cards", "1.x");
 
+import { logStart, logEnd, getSortedPlayers } from "./Functions.js";
+
 class PlayerTurn {
   constructor(game, bga) {
     this.game = game;
@@ -95,8 +97,9 @@ export class Game {
 
   setup(gamedatas) {
     console.log("Starting game setup");
-    debugger;
     this.gamedatas = gamedatas;
+    debugger;
+    let x = getSortedPlayers(gamedatas);
 
     this.bga.gameArea.getElement().insertAdjacentHTML(
       "beforeend",
@@ -178,7 +181,10 @@ export class Game {
 
     // Setting up player boards
     const numPlayers = Object.keys(gamedatas.players).length;
-    Object.values(gamedatas.players).forEach((player, index) => {
+    getSortedPlayers(gamedatas).forEach((player, index) => {
+      // });
+
+      // Object.values(gamedatas.players).forEach((player, index) => {
       document.getElementById("player-tables").insertAdjacentHTML(
         "beforeend",
         // we generate this html snippet for each player

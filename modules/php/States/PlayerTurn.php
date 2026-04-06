@@ -15,6 +15,8 @@ class PlayerTurn extends GameState
 {
     public function __construct(protected Game $game)
     {
+        $game->notify->all('xxx', 'PlayerTurn constructor called'); // This is a debug message that will be sent to the client, you can see it in the console log of your browser (F12) when the state is created
+
         parent::__construct(
             $game,
             id: 31,
@@ -28,6 +30,8 @@ class PlayerTurn extends GameState
     #[PossibleAction] // a PHP attribute that tells BGA "this method describes a possible action that the player could take", so that you can call that action from the front (the client)
     public function actPlayCard(int $cardId, int $activePlayerId)
     {
+        $game = $this->game;
+        $game->notify->all('xxx', 'PlayerTurn actPlayCard'); // This is a debug message that will be sent to the client, you can see it in the console log of your browser (F12) when the state is created
         throw new UserException("Not implemented: $activePlayerId played card $cardId");
         return NextPlayer::class; // after the action, we move to the next player
     }
